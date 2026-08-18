@@ -1,0 +1,33 @@
+{
+  "name": "chatbot-backend",
+  "version": "1.0.0",
+  "description": "",
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devEngines": {
+    "packageManager": {
+      "name": "pnpm",
+      "version": "^11.21.0",
+      "onFail": "download"
+    }
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.6",
+    "@types/node": "^26.2.0",
+    "typescript": "^7.0.2"
+  },
+  "main": "dist/index.js",
+  "type": "module",
+  "scripts": {
+    "dev": "node --watch src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "prestart": "pnpm run build"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.117.1",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1"
+  }
+}
