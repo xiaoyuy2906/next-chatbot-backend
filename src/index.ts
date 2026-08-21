@@ -13,29 +13,51 @@ app.post(
   wrapper(async (req: Request, res: Response) => {
     // console.log(req.body)
 
-    const apiKey =
-      process.env.AI_GATEWAY_API_KEY || process.env.VERCEL_OIDC_TOKEN
+
+    const {
+      chatId,
+      apiKey,
+      apiBase,
+      model,
+      messages,
+      temperature,
+      topP,
+      frequencyPenalty,
+      maxCompletionTokens,
+      reasoningEffort
+    } = req.body
+
+
+    const myApiKey = apiKey || process.env.AI_GATEWAY_API_KEY
 
     const anthropic = new Anthropic({
-      apiKey,
-      baseURL: "https://ai-gateway.vercel.sh",
+      apiKey: myApiKey,
+      baseURL: apiBase || "https://ai-gateway.vercel.sh",
     })
 
-    const { chatId, model, messages } = req.body
     console.log(req.body)
+
+
+    if (apiKey == '' || apiBase == '') {
+      return res.json([{
+        type: "error",
+        text: "apiKey or apiBase is required"
+      }])
+    }
+
     const message = await anthropic.messages.create({
       model: model,
       messages: messages,
       max_tokens: 4096,
-      temperature: 0.7,
-      top_p: 0.9,
-      frequency_penalty: 0,
-      reasoning_effort: "low",
+      temperature,
+      top_p: topP,
+      frequency_penalty: frequencyPenalty,
+      reasoning_effort: reasoningEffort,
     })
 
     // console.log(message)
 
-    // console.log("Response:", message.content)
+    console.log("Response:", message.content)
     // console.log('Usage:', message.usage);
 
     if (message.content.length > 0) {
