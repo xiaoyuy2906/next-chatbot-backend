@@ -13,7 +13,6 @@ app.post(
   wrapper(async (req: Request, res: Response) => {
     // console.log(req.body)
 
-
     const {
       chatId,
       apiKey,
@@ -24,28 +23,47 @@ app.post(
       topP,
       frequencyPenalty,
       maxCompletionTokens,
-      reasoningEffort
+      reasoningEffort,
     } = req.body
-
 
     const myApiKey = apiKey || process.env.AI_GATEWAY_API_KEY
 
-    const anthropic = new Anthropic({
+    const client = new Anthropic({
       apiKey: myApiKey,
       baseURL: apiBase || "https://ai-gateway.vercel.sh",
     })
 
     console.log(req.body)
 
-
-    if (apiKey == '' || apiBase == '') {
-      return res.json([{
-        type: "error",
-        text: "apiKey or apiBase is required"
-      }])
+    if (apiKey == "" || apiBase == "") {
+      return res.json([
+        {
+          type: "error",
+          text: "apiKey or apiBase is required",
+        },
+      ])
     }
 
-    const message = await anthropic.messages.create({
+    // const message = await anthropic.messages.create({
+    //   model: model,
+    //   messages: messages,
+    //   max_tokens: 4096,
+    //   temperature,
+    //   top_p: topP,
+    //   frequency_penalty: frequencyPenalty,
+    //   reasoning_effort: reasoningEffort,
+    // })
+
+    // console.log("Response:", message.content)
+
+    // if (message.content.length > 0) {
+    //   const content = message.content.filter(
+    //     (item: any) => item.type === "text",
+    //   )
+    //   res.json(content)
+    // }
+
+    const stream = client.messages.stream({
       model: model,
       messages: messages,
       max_tokens: 4096,
@@ -55,16 +73,14 @@ app.post(
       reasoning_effort: reasoningEffort,
     })
 
-    // console.log(message)
-
-    console.log("Response:", message.content)
-    // console.log('Usage:', message.usage);
-
-    if (message.content.length > 0) {
-      const content = message.content.filter(
-        (item: any) => item.type === "text",
-      )
-      res.json(content)
+    for await (const event of stream) {
+      console.log(event)
+      if (
+        event.type === "content_block_delta" &&
+        event.delta.type === "text_delta"
+      ) {
+        res.write(event.delta.text)
+      }
     }
   }),
 )
